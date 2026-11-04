@@ -1,0 +1,6 @@
+{
+  "name": "Mi Calendario",
+  "description": "Sistema compartido de cumpleaños, vacaciones y días compensatorios con calendario interactivo y control de saldos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
