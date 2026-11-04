@@ -13,7 +13,7 @@ import { getMexicanHolidays } from '../utils/mexicanHolidays';
 import { getSeasonalTheme } from '../utils/seasonalTheme';
 import { Cumpleanos, Usuario, Vacacion } from '../types';
 import { VacationFormatTab } from './VacationFormatTab';
-import { CalendarDays, FileSpreadsheet, Link2, Palmtree, Trash2, UserRoundPlus, UsersRound, X } from 'lucide-react';
+import { CalendarDays, FileSpreadsheet, Palmtree, Trash2, UserRoundPlus, UsersRound, X } from 'lucide-react';
 
 type CalendarTab = 'calendario' | 'usuarios' | 'formato';
 
@@ -34,10 +34,6 @@ export const SimpleCalendar: React.FC = () => {
   const [message, setMessage] = useState('');
   const [isAddingPerson, setIsAddingPerson] = useState(false);
   const [removingPersonId, setRemovingPersonId] = useState<string | null>(null);
-  const [isConnectionOpen, setIsConnectionOpen] = useState(false);
-  const [appsScriptUrl, setAppsScriptUrl] = useState(storage.getAppsScriptUrl());
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [isSheetsConnected, setIsSheetsConnected] = useState(Boolean(storage.getAppsScriptUrl()));
 
   useEffect(() => {
     let active = true;
@@ -144,32 +140,6 @@ export const SimpleCalendar: React.FC = () => {
     }
   };
 
-  const handleConnectSheets = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const url = appsScriptUrl.trim();
-    if (!url) {
-      notify('Pega la URL de la aplicación web de Apps Script que termina en /exec.');
-      return;
-    }
-
-    const previousUrl = storage.getAppsScriptUrl();
-    setIsConnecting(true);
-    storage.setAppsScriptUrl(url);
-    try {
-      await storage.loadSharedData(url);
-      setIsSheetsConnected(true);
-      setRefreshKey((key) => key + 1);
-      setIsConnectionOpen(false);
-      notify('Google Sheets conectado. Los cambios se comparten entre dispositivos.');
-    } catch (error: unknown) {
-      storage.setAppsScriptUrl(previousUrl);
-      setIsSheetsConnected(Boolean(previousUrl));
-      notify(error instanceof Error ? error.message : 'No se pudo conectar con Google Sheets.');
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-md">
@@ -183,17 +153,6 @@ export const SimpleCalendar: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  setAppsScriptUrl(storage.getAppsScriptUrl());
-                  setIsConnectionOpen(true);
-                }}
-                title={isSheetsConnected ? 'Configurar Google Sheets' : 'Conectar Google Sheets'}
-                className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold border rounded-lg ${isSheetsConnected ? 'text-emerald-800 border-emerald-200 bg-emerald-50 hover:bg-emerald-100' : 'text-slate-700 border-slate-300 hover:bg-slate-50'}`}
-              >
-                <Link2 className="w-4 h-4" />
-                <span className="hidden sm:inline">{isSheetsConnected ? 'Sheets conectado' : 'Conectar Sheets'}</span>
-              </button>
             <button onClick={openAddPerson} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-700 border border-slate-300 hover:bg-slate-50 rounded-lg">
               <UserRoundPlus className="w-4 h-4" /><span className="hidden sm:inline">Agregar persona</span><span className="sm:hidden">Persona</span>
             </button>
@@ -294,25 +253,6 @@ export const SimpleCalendar: React.FC = () => {
       </main>
 
       {message && <div role="status" className="fixed bottom-4 right-4 z-[60] max-w-sm px-4 py-3 text-sm text-white bg-slate-900 rounded-lg shadow-lg">{message}</div>}
-
-      {isConnectionOpen && <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-        <div className="w-full max-w-lg bg-white rounded-xl border border-slate-200 shadow-2xl">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
-            <h2 className="text-base font-bold text-slate-900">Conectar Google Sheets</h2>
-            <button onClick={() => setIsConnectionOpen(false)} aria-label="Cerrar" className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg"><X className="w-4 h-4" /></button>
-          </div>
-          <form onSubmit={handleConnectSheets} className="p-5 space-y-4">
-            <label className="block text-xs font-semibold text-slate-700">URL de la aplicación web de Apps Script
-              <input type="url" value={appsScriptUrl} onChange={(event) => setAppsScriptUrl(event.target.value)} placeholder="https://script.google.com/macros/s/.../exec" className="mt-1.5 w-full px-3 py-2.5 border border-slate-300 rounded-lg font-mono" required />
-            </label>
-            <p className="text-xs text-slate-500">Usa la URL /exec del despliegue. Para compartir desde GitHub Pages en todos los dispositivos, configura también VITE_APPS_SCRIPT_URL en el repositorio.</p>
-            <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setIsConnectionOpen(false)} className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg">Cancelar</button>
-              <button type="submit" disabled={isConnecting} className="px-4 py-2 text-sm font-semibold text-white bg-blue-700 hover:bg-blue-800 disabled:bg-slate-300 rounded-lg">{isConnecting ? 'Conectando...' : 'Probar y conectar'}</button>
-            </div>
-          </form>
-        </div>
-      </div>}
 
       {selectedDate && <DayDetailModal
         dateStr={selectedDate}
