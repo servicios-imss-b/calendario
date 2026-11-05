@@ -28,7 +28,7 @@ const STORAGE_KEYS = {
   APPS_SCRIPT_URL: 'mi_calendario_apps_script_url_v1',
 };
 
-const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyF2xpXzpwDUAe1O-mWyEIZAyRinIaLk6gh2rEWPy5iAQ9qllmxYtuYv7JUdjZJ9c1WAA/exec';
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyrjCGkq_s2r0_fQxb85UsT9tMHAydOPv_zWYtVlVeCGh0VJuT7jhM_juvgknElWsi0VA/exec';
 
 // Initial Seed Data complying with user request
 const INITIAL_USERS: Usuario[] = [
@@ -1059,49 +1059,23 @@ class StorageService {
     localStorage.setItem(STORAGE_KEYS.APPS_SCRIPT_URL, url.trim());
   }
 
-  private requestAppsScriptJsonp(url: string): Promise<{
+  private async requestAppsScriptData(url: string): Promise<{
     success: boolean;
     message?: string;
     error?: string;
     data?: Record<string, Record<string, unknown>[]>;
   }> {
-    return new Promise((resolve, reject) => {
-      const callbackName = `miCalendarioCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-      const callbackWindow = window as unknown as Record<string, unknown>;
-      const script = document.createElement('script');
-      const timeout = window.setTimeout(() => finish(new Error('Tiempo de espera agotado al consultar Google Sheets')), 15000);
-      const separator = url.includes('?') ? '&' : '?';
-
-      const finish = (error?: Error, result?: {
-        success: boolean;
-        message?: string;
-        error?: string;
-        data?: Record<string, Record<string, unknown>[]>;
-      }) => {
-        window.clearTimeout(timeout);
-        delete callbackWindow[callbackName];
-        script.remove();
-        if (error) reject(error);
-        else if (result) resolve(result);
-      };
-
-      callbackWindow[callbackName] = (result: {
-        success: boolean;
-        message?: string;
-        error?: string;
-        data?: Record<string, Record<string, unknown>[]>;
-      }) => finish(undefined, result);
-      script.onerror = () => finish(new Error('No se pudo cargar la API de Google Apps Script'));
-      script.src = `${url}${separator}action=get_all&callback=${callbackName}&_=${Date.now()}`;
-      document.head.appendChild(script);
-    });
+    const separator = url.includes('?') ? '&' : '?';
+    const response = await fetch(`${url}${separator}action=get_all&_=${Date.now()}`, { mode: 'cors' });
+    if (!response.ok) throw new Error(`Google Apps Script respondió HTTP ${response.status}`);
+    return response.json();
   }
 
   public async loadSharedData(url = this.getAppsScriptUrl()): Promise<boolean> {
     const targetUrl = url.trim();
     if (!targetUrl) return false;
 
-    const response = await this.requestAppsScriptJsonp(targetUrl);
+    const response = await this.requestAppsScriptData(targetUrl);
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Google Apps Script no pudo entregar los datos');
     }
