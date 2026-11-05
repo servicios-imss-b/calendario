@@ -1143,12 +1143,15 @@ class StorageService {
     const targetUrl = this.getAppsScriptUrl();
     if (!targetUrl) throw new Error('Configura primero la URL de Apps Script');
 
-    await fetch(targetUrl, {
+    const response = await fetch(targetUrl, {
       method: 'POST',
-      mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action, data }),
     });
+    if (!response.ok) throw new Error(`Google Apps Script respondió HTTP ${response.status}`);
+    const result = await response.json() as { success?: boolean; error?: string };
+    if (!result.success) throw new Error(result.error || 'Google Apps Script rechazó la operación');
+
     await this.loadSharedData(targetUrl);
 
     if (action === 'add_person' && !this.getUsers().some((person) => person.id_usuario === data.id_persona)) {
