@@ -7,6 +7,9 @@ import React, { useState, useMemo } from 'react';
 import { Usuario, Vacacion, Cumpleanos, Festivo } from '../types';
 import { getSeasonalTheme } from '../utils/seasonalTheme';
 import { getMexicanHolidays } from '../utils/mexicanHolidays';
+import dayOfDeadBackground from '../../fondos/dia-de-muertos.avif';
+import revolutionBackground from '../../fondos/revolución_mexicana.jpg';
+import christmasBackground from '../../fondos/navidad.webp';
 import {
   ChevronLeft,
   ChevronRight,
@@ -56,11 +59,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     (today.getFullYear() === currentYear && today.getMonth() === 10 && today.getDate() >= 16)
   );
   const calendarBackground = currentMonth === 11
-    ? './fondos/navidad.webp'
+    ? christmasBackground
     : currentMonth === 10
     ? isRevolutionBackgroundActive
-      ? './fondos/revolucio%CC%81n_mexicana.jpg'
-      : './fondos/dia-de-muertos.avif'
+      ? revolutionBackground
+      : dayOfDeadBackground
     : undefined;
 
   // Days in current month
