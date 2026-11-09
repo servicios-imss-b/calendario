@@ -58,11 +58,12 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
     return bMonth === month && bDay === day;
   });
 
-  // Find vacations on this date (status 'aprobada')
-  const dayVacations = vacations.filter((v) => {
-    if (v.estado !== 'aprobada') return false;
-    return dateStr >= v.fecha_inicio && dateStr <= v.fecha_fin;
-  });
+  const isOfficialHoliday = dayHolidays.some((holiday) => holiday.tipo === 'oficial');
+  const dayVacations = isWeekend || isOfficialHoliday
+    ? []
+    : vacations.filter((vacation) =>
+      vacation.estado === 'aprobada' && dateStr >= vacation.fecha_inicio && dateStr <= vacation.fecha_fin
+    );
 
   const getUserById = (id: string) => users.find((u) => u.id_usuario === id);
 

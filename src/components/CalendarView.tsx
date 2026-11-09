@@ -199,11 +199,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         const m = String(cur.getMonth() + 1).padStart(2, '0');
         const d = String(cur.getDate()).padStart(2, '0');
         const dt = `${y}-${m}-${d}`;
+        const isWeekend = cur.getDay() === 0 || cur.getDay() === 6;
+        const isHoliday = (y === currentYear ? holidays : getMexicanHolidays(y))
+          .some((holiday) => holiday.tipo === 'oficial' && holiday.fecha === dt);
 
-        if (!map.has(dt)) {
-          map.set(dt, { holidays: [], birthdays: [], vacations: [] });
+        if (!isWeekend && !isHoliday) {
+          if (!map.has(dt)) {
+            map.set(dt, { holidays: [], birthdays: [], vacations: [] });
+          }
+          map.get(dt)!.vacations.push({ user, vac: v });
         }
-        map.get(dt)!.vacations.push({ user, vac: v });
         cur.setDate(cur.getDate() + 1);
       }
     });
