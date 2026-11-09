@@ -49,15 +49,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 }) => {
   const [selectedUserFilter, setSelectedUserFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'agenda'>('grid');
-  const [revolutionThemeYear, setRevolutionThemeYear] = useState<number | null>(null);
+  const [revolutionThemeDate, setRevolutionThemeDate] = useState<string | null>(null);
 
   const theme = useMemo(() => getSeasonalTheme(currentMonth), [currentMonth]);
   const holidays = useMemo(() => getMexicanHolidays(currentYear), [currentYear]);
-  const today = new Date();
-  const isRevolutionBackgroundActive = currentMonth === 10 && (
-    revolutionThemeYear === currentYear ||
-    (today.getFullYear() === currentYear && today.getMonth() === 10 && today.getDate() >= 16)
-  );
+  const isRevolutionBackgroundActive = currentMonth === 10 &&
+    revolutionThemeDate === `${currentYear}-11-16`;
   const calendarBackground = currentMonth === 11
     ? christmasBackground
     : currentMonth === 10
@@ -246,9 +243,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   };
 
   const handleSelectDate = (dateStr: string) => {
-    if (dateStr === `${currentYear}-11-16`) {
-      setRevolutionThemeYear(currentYear);
-    }
+    setRevolutionThemeDate(dateStr === `${currentYear}-11-16` ? dateStr : null);
     onSelectDate(dateStr);
   };
 
